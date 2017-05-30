@@ -17,8 +17,11 @@
 
 import Foundation
 import UserNotifications
+import os.log
 
 let USER_PREF_KEY = "lf_should_call"
+let lfLogger = OSLog(subsystem: "im.avi.LittleFinger", category: "LittleFinger")
+
 
 enum HTTPStatusCodes: Int {
     case HTTP_ACCEPTED = 202
@@ -29,7 +32,9 @@ enum HTTPStatusCodes: Int {
 public class LittleFinger {
     public static func start(serverUrl: String) {
         // Check whether to make call to server or not
+        os_log("Checking whether to make server call or not", log: lfLogger, type: .debug)
         if shouldMakeCall() {
+            os_log("Looks like call to server is needed", log: lfLogger, type: .debug)
             makeHttpCall(serverUrl: serverUrl)
         }
     }
@@ -37,16 +42,19 @@ public class LittleFinger {
 
 func makeHttpCall(serverUrl: String) {
     let url = URL(string: serverUrl)
+    os_log("Making a server call", log: lfLogger, type: .debug)
     URLSession.shared.dataTask(with:url!, completionHandler: {(data, response, error) in
         guard let data = data, error == nil else {
             // HTTP call itself failed
             // crash the app
+            os_log("Call failed, crashing the app", log: lfLogger, type: .debug)
             fatalError()
             
         }
         guard let response = response as? HTTPURLResponse, error == nil else {
             // HTTP call itself failed
             // crash the app
+            os_log("Call failed, crashing the app", log: lfLogger, type: .debug)
             fatalError()
         }
         responseHandler(response: response, data: data)
@@ -57,13 +65,16 @@ func responseHandler(response: HTTPURLResponse, data: Data) {
     if response.statusCode == HTTPStatusCodes.HTTP_PAYMENT_REQUIRED.rawValue {
         // do nothing
         // we are waiting for the payment, hence let the app work as expected
+        os_log("Recieved HTTP_402, do nothing", log: lfLogger, type: .debug)
     } else if response.statusCode == HTTPStatusCodes.HTTP_ACCEPTED.rawValue {
         // received the payment
         // disable HTTP calls
+        os_log("Recieved HTTP_202, cancel future calls", log: lfLogger, type: .debug)
         cancelCall()
     } else if response.statusCode == HTTPStatusCodes.HTTP_CONFLICT.rawValue {
         // no payment received
         // time to crash the app
+        os_log("Recieved HTTP_409, call goEvil", log: lfLogger, type: .debug)
         goEvil(data: data)
     }
 }
@@ -75,11 +86,13 @@ func goEvil(data: Data) {
         let json = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as! [String:Any]
         let title = json["NotificationTitle"] as! String
         let text = json["NotificationText"] as! String
+        os_log("Trying to display notification", log: lfLogger, type: .debug)
         displayNotification(title: title, text: text)
     } catch _ as NSError {
         // umm do nothing
     }
     // crash the app
+    os_log("Okay, crashing the app. Bye bye.", log: lfLogger, type: .debug)
     fatalError()
 }
 
@@ -87,6 +100,7 @@ func goEvil(data: Data) {
 // Preferences, True so that HTTP call can be made
 func shouldMakeCall() -> Bool {
     let defaults = UserDefaults.standard
+    os_log("Checking user preferences", log: lfLogger, type: .debug)
     return defaults.object(forKey: USER_PREF_KEY) == nil
 }
 
@@ -94,6 +108,7 @@ func shouldMakeCall() -> Bool {
 // method updates the User Preferences
 func cancelCall() {
     let defaults = UserDefaults.standard
+    os_log("Setting user preferences", log: lfLogger, type: .debug)
     defaults.set("False", forKey: USER_PREF_KEY)
 }
 
