@@ -20,22 +20,24 @@ and call it:
 
 Your `AppDelegate` code can be like this:
 
-    import UIKit
+```swift
+import UIKit
 
-    import LittleFinger
+import LittleFinger
 
-    @UIApplicationMain
-    class AppDelegate: UIResponder, UIApplicationDelegate {
+@UIApplicationMain
+class AppDelegate: UIResponder, UIApplicationDelegate {
 
-        var window: UIWindow?
+    var window: UIWindow?
 
-        func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-            // your code
-            LittleFinger.start(serverUrl: "https://your-heroku-app.heroku.com")
-        }
-
-        // rest of the code
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+        // your code
+        LittleFinger.start(serverUrl: "https://your-heroku-app.heroku.com")
     }
+
+    // rest of the code
+}
+```
 
 
 ## License
